@@ -1,5 +1,5 @@
 var LISTEN_PORT = 8000;
-var ENDPOINT = "ibl.cloud.bbc.co.uk";
+var ENDPOINT = "ibl.api.bbci.co.uk";
 
 var iblProxy = require('./iblProxy');
 
