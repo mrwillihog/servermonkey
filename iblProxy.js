@@ -5,24 +5,26 @@ var EventEmitter = require('events').EventEmitter;
 var defaults = {
     listen_port: 8000,
     endpoint: "ibl.cloud.bbc.co.uk"
-}
+};
 
 exports.createServer = function (config) {
     if (typeof config === 'undefined') config = {};
     config = extend(defaults, config);
     console.log(config);
 
-    var bodyFilters = [], delay = 0;
-
-    var server = {};
+    var bodyFilters = [], headerFilters = [], delay = 0, server = {};
 
     server.addBodyFilter = function (cb) {
         bodyFilters.push(cb);
     };
 
+    server.addHeaderFilter = function (cb) {
+        headerFilters.push(cb);
+    };
+
     server.setDelay = function (dasDelay) {
         delay = dasDelay;
-    }
+    };
 
     http.createServer(function (client_req, client_res) {
         console.log('Request ' + new Date());
@@ -40,9 +42,21 @@ exports.createServer = function (config) {
         var buffer = new Buffer(0);
 
         var proxy = http.request(options, function (res) {
+            var value;
             res.on('data', function (chunk) {
                 buffer = Buffer.concat([buffer, chunk]);
             });
+
+            for(var header in res.headers) {
+                value = res.headers[header];
+                for (var filter in headerFilters) {
+                    value = headerFilters[filter](header, value);
+                }
+                if (value) {
+                    client_res.setHeader(header, value);
+                }
+            }
+
             res.on('end', function () {
                 console.log("END");
                 for (var filter in bodyFilters) {

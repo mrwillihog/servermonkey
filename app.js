@@ -17,6 +17,16 @@ proxy.addBodyFilter(function (body, callback) {
     return new Buffer(str);
 });
 
+proxy.addHeaderFilter(function (key, value) {
+    if (key === 'x-powered-by') {
+        return false;
+    }
+    if (key === 'cache-control') {
+        return value + ", stale-if-error=21600";
+    }
+    return value;
+});
+
 //proxy.setDelay(10);
 
 
